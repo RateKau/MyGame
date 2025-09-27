@@ -1,583 +1,252 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8" />
-  <title>Web RPG (Full)</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <style>
-    /* ===== 全体スタイル（綺麗めカラー） ===== */
-    :root{
-      --bg1:#0f1724;
-      --bg2:#172031;
-      --card:#2b3947;
-      --accent:#7dd3fc;
-      --muted:#94a3b8;
-      --btn:#60a5fa;
-      --win:#93c5fd;
-    }
-    html,body{height:100%;margin:0;font-family: "Noto Sans JP", "Arial", sans-serif;background:linear-gradient(180deg,var(--bg1),var(--bg2));color:#eef2ff}
-    .container{position:relative;height:100vh;width:100vw;overflow:hidden}
-    /* Gold */
-    #gold{position:absolute;top:12px;left:50%;transform:translateX(-50%);font-weight:700;font-size:20px;color:var(--win)}
-    /* 敵（白に薄いグレー混ぜ） */
-    #enemy{width:200px;height:200px;background:linear-gradient(180deg,#ffffff,#f3f4f6);border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,0.45);position:absolute;top:28%;left:50%;transform:translateX(-50%);cursor:pointer;display:flex;align-items:center;justify-content:center}
-    #enemy::after{content:"";position:absolute;inset:0;border-radius:8px;mix-blend-mode:soft-light;opacity:0.06}
-    /* HPバー */
-    #enemyHpContainer{width:240px;height:26px;background:#4b5563;position:absolute;top:22%;left:50%;transform:translateX(-50%);border-radius:8px;overflow:hidden}
-    #enemyHp{height:100%;width:100%;background:linear-gradient(90deg,#34d399,#10b981);transition:width .18s linear, background .18s linear}
-    #enemyHpText{position:absolute;top:18%;left:50%;transform:translate(-50%,-120%);font-size:15px;color:#eef2ff;background:transparent;font-weight:600}
-    /* Exp bar */
-    #expContainer{width:460px;height:20px;background:#3f4b57;position:absolute;left:50%;transform:translateX(-50%);bottom:84px;border-radius:10px;overflow:hidden}
-    #expBar{height:100%;width:0;background:#ffffff;transition:width .18s linear}
-    /* Level */
-    #level{position:absolute;bottom:112px;left:50%;transform:translateX(-50%);font-size:18px}
-    /* 自動攻撃切替（左寄せに移動） */
-    #autoAttackToggle{position:absolute;left:20px;top:50%;transform:translateY(-50%);padding:10px 16px;border-radius:10px;background:var(--card);border:1px solid rgba(255,255,255,0.04);cursor:pointer;font-weight:700}
-    /* メニューボタン（右側縦並び） */
-    .sideBtn{position:absolute;right:20px;padding:10px 14px;border-radius:10px;background:var(--card);border:1px solid rgba(255,255,255,0.04);cursor:pointer;margin-bottom:8px;color:#ecfeff;font-weight:700}
-    #upgradeBtn{top:45%}
-    #craftBtn{top:35%}
-    #fishBtn{top:25%}
-    #inventoryBtn{top:55%}
-    /* メニュー画面共通 */
-    .menuScreen{display:none;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:44%;height:66%;background:linear-gradient(180deg,var(--card),#243241);border-radius:14px;border:1px solid rgba(255,255,255,0.04);padding:18px;box-shadow:0 12px 30px rgba(2,6,23,0.6);overflow:auto}
-    .menuScreen h2{margin:4px 0 12px 0;font-size:20px;color:var(--accent)}
-    .menuScreen .muted{color:var(--muted);font-size:13px;margin-bottom:8px}
-    .menuScreen .bigBtn{display:block;margin:10px auto;padding:10px 16px;border-radius:10px;background:linear-gradient(90deg,var(--btn),#3b82f6);border:none;color:#fff;font-weight:800;cursor:pointer}
-    .menuScreen button:disabled{opacity:.45;cursor:not-allowed}
-    /* inventory list */
-    #inventoryList{display:flex;flex-direction:column;gap:8px;align-items:center;margin-top:8px}
-    .invItem{width:85%;padding:8px 12px;background:rgba(255,255,255,0.03);border-radius:8px;display:flex;justify-content:space-between;align-items:center}
-    .invItem button{padding:6px 8px;border-radius:6px;background:#06b6d4;border:none;color:#012;cursor:pointer;font-weight:700}
-    /* fishing */
-    #fishingArea{width:120px;height:120px;background:linear-gradient(180deg,#93c5fd,#7dd3fc);border-radius:999px;margin:10px auto;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 18px rgba(0,0,0,0.35)}
-    #fishingBarContainer{width:86%;height:28px;background:#3b4250;border-radius:8px;margin:12px auto;overflow:hidden;display:none}
-    #fishingBar{height:100%;width:0;background:linear-gradient(90deg,#a7f3d0,#60a5fa);transition:width .05s linear}
-    /* boost display bottom-right */
-    #boostDisplay{position:absolute;right:16px;bottom:10px;color:#a7f3d0;font-weight:700}
-    /* small badge */
-    .badge{background:rgba(255,255,255,0.06);padding:6px 8px;border-radius:8px;font-weight:700}
-    /* gold gain float */
-    .goldGain{position:absolute;color:#fde68a;font-weight:800;font-size:16px;animation:floatUp 1s ease-out forwards}
-    @keyframes floatUp{from{transform:translateY(0);opacity:1}to{transform:translateY(-36px);opacity:0}}
-    /* responsive */
-    @media(max-width:900px){
-      .menuScreen{width:90%;height:72%}
-      #expContainer{width:85%}
-    }
-  </style>
+<meta charset="UTF-8">
+<title>シンプルRPG+</title>
+<style>
+  body { font-family:sans-serif; background:linear-gradient(to bottom,#dfe9f3,#ffffff); margin:0; padding:0; text-align:center; }
+  #gameContainer{ max-width:800px; margin:0 auto; padding:20px; }
+  button{ margin:5px; padding:10px; border-radius:8px; border:none; cursor:pointer; background:#4a90e2; color:white; }
+  button:disabled{ background:#999; }
+  #enemy{ width:100px; height:100px; background:linear-gradient(45deg,#fff,#ccc); margin:20px auto; line-height:100px; }
+  #menuButtons{ position:fixed; right:10px; top:50%; transform:translateY(-50%); display:flex; flex-direction:column; }
+  .menuScreen{ display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:white; border:2px solid #333; padding:20px; }
+  #boostDisplay{ position:fixed; right:10px; bottom:10px; background:rgba(0,0,0,0.6); color:white; padding:10px; border-radius:8px; }
+  #autoAttackToggle{ position:fixed; left:10px; top:50%; transform:translateY(-50%); background:#e67e22; }
+</style>
 </head>
 <body>
-  <div class="container">
-    <div id="gold">Gold: 0</div>
+<div id="gameContainer">
+  <h1>シンプルRPG+</h1>
+  <div id="enemy">敵</div>
+  <p>HP: <span id="enemyHp"></span></p>
+  <button id="attackBtn">攻撃</button>
+  <p>Gold: <span id="gold">0</span> | Exp: <span id="exp">0</span> | Lv: <span id="level">1</span></p>
+  <p>アップグレードポイント: <span id="upgradePoints">0</span></p>
+</div>
 
-    <div id="enemyHpContainer"><div id="enemyHp"></div></div>
-    <div id="enemyHpText">100 / 100</div>
-    <div id="enemy">ENEMY</div>
+<div id="menuButtons">
+  <button id="openUpgrades">アップグレード</button>
+  <button id="openCraft">クラフト</button>
+  <button id="openFishing">釣り</button>
+  <button id="openInventory">インベントリ</button>
+  <button id="openReward">リワード</button>
+</div>
+<button id="autoAttackToggle">自動攻撃 OFF</button>
+<div id="boostDisplay"></div>
 
-    <div id="level">Level: 1</div>
-    <div id="expContainer"><div id="expBar"></div></div>
+<!-- アップグレード -->
+<div id="upgradeMenu" class="menuScreen">
+  <h2>アップグレード</h2>
+  <div id="upgradeList"></div>
+  <button id="resetUpgrades">アップグレードリセット (50G)</button><br>
+  <button onclick="closeMenu('upgradeMenu')">閉じる</button>
+</div>
 
-    <!-- 自動攻撃トグル（左中央） -->
-    <button id="autoAttackToggle">自動攻撃: OFF</button>
+<!-- クラフト -->
+<div id="craftMenu" class="menuScreen">
+  <h2>クラフト</h2>
+  <div id="craftList"></div>
+  <button onclick="closeMenu('craftMenu')">閉じる</button>
+</div>
 
-    <!-- 右側メニュー -->
-    <button id="fishBtn" class="sideBtn">釣り</button>
-    <button id="craftBtn" class="sideBtn">クラフト</button>
-    <button id="upgradeBtn" class="sideBtn">アップグレード</button>
-    <button id="inventoryBtn" class="sideBtn">インベントリ</button>
+<!-- 釣り -->
+<div id="fishingMenu" class="menuScreen">
+  <h2>釣り</h2>
+  <button id="startFishing">釣りを始める</button>
+  <p id="fishingInfo"></p>
+  <button id="fishAction" disabled>釣る！</button>
+  <button onclick="closeMenu('fishingMenu')">閉じる</button>
+</div>
 
-    <!-- ブースト表示 -->
-    <div id="boostDisplay"></div>
+<!-- インベントリ -->
+<div id="inventoryMenu" class="menuScreen">
+  <h2>インベントリ</h2>
+  <div id="inventoryList"></div>
+  <button onclick="closeMenu('inventoryMenu')">閉じる</button>
+</div>
 
-    <!-- ===== Upgrades ===== -->
-    <div id="upgradeMenu" class="menuScreen">
-      <h2>アップグレード</h2>
-      <div class="muted">ポイント: <span id="upgradePoints">0</span></div>
+<!-- リワード -->
+<div id="rewardMenu" class="menuScreen">
+  <h2>リワード</h2>
+  <input type="text" id="rewardCode" placeholder="コードを入力">
+  <button id="claimReward">受け取る</button>
+  <p id="rewardMessage"></p>
+  <button onclick="closeMenu('rewardMenu')">閉じる</button>
+</div>
 
-      <div style="display:flex;gap:8px;justify-content:center;align-items:center;margin-bottom:8px">
-        <div class="badge">自動攻撃: <span id="uiAutoAttack">未購入</span></div>
-        <div class="badge">攻撃力Lv: <span id="uiAttackPower">0</span>/10</div>
-        <div class="badge">攻撃速度Lv: <span id="uiAttackSpeed">0</span>/5</div>
-        <div class="badge">ゴールドブーストLv: <span id="uiGoldBoost">0</span>/5</div>
-      </div>
+<script>
+let gold=0, exp=0, level=1, upgradePoints=0;
+let upgrades={attack:0,gold:0,attackSpeed:0};
+let attackDamage=1, goldMultiplier=1;
+let autoAttackEnabled=false;
+let hasRod=false;
+let inventory=[];
+let boostEffects={point2x:0,exp2x:0};
+let resources={wood:0,stone:0,stoneSword:0};
 
-      <button id="buyAutoAttack" class="bigBtn">自動攻撃を購入 (必要: 1P)</button>
-      <button id="buyAttackPower" class="bigBtn">攻撃力アップを購入</button>
-      <button id="buyAttackSpeed" class="bigBtn">自動攻撃速度を購入</button>
-      <button id="buyGoldBoost" class="bigBtn">ゴールド増加を購入</button>
+let enemyMaxHp=20, enemyHp=20;
 
-      <div style="margin-top:14px;">
-        <button id="resetUpgrades" class="bigBtn" style="background:#f97316">アップグレードをリセット (50 Gold)</button>
-      </div>
+const enemyHpSpan=document.getElementById("enemyHp");
+const goldSpan=document.getElementById("gold");
+const expSpan=document.getElementById("exp");
+const levelSpan=document.getElementById("level");
+const upgradePointsSpan=document.getElementById("upgradePoints");
+const boostDisplay=document.getElementById("boostDisplay");
+const autoAttackBtn=document.getElementById("autoAttackToggle");
 
-      <button id="closeUpgrade" class="bigBtn" style="background:#ef4444">閉じる</button>
-    </div>
+function updateGold(){ goldSpan.textContent=gold; }
+function updateExp(){ expSpan.textContent=exp; levelSpan.textContent=level; }
+function updateUpgradePoints(){ upgradePointsSpan.textContent=upgradePoints; }
+function updateEnemyHp(){ enemyHpSpan.textContent=enemyHp+"/"+enemyMaxHp; }
 
-    <!-- ===== Craft ===== -->
-    <div id="craftMenu" class="menuScreen">
-      <h2>クラフト</h2>
-      <div class="muted">釣竿は1個のみ作成可能。石の剣は何個でも作成可。</div>
-      <div class="invItem" style="width:90%;justify-content:space-between">
-        <div>
-          <strong>釣竿</strong><div class="muted">費用: Gold 5000</div>
-        </div>
-        <div><button id="craftRodBtn">作成</button></div>
-      </div>
-
-      <div class="invItem" style="width:90%;justify-content:space-between">
-        <div>
-          <strong>石の剣</strong><div class="muted">費用: Gold150, 木材×5, 石×9（所持個数に応じて何個でも）</div>
-        </div>
-        <div><button id="craftStoneSwordBtn">作成</button></div>
-      </div>
-
-      <div style="margin-top:12px" class="muted">所持: <span id="uiWood">木材 0</span> / <span id="uiStone">石 0</span> / <span id="uiSwords">石の剣 0</span></div>
-
-      <button id="closeCraft" class="bigBtn" style="background:#ef4444">閉じる</button>
-    </div>
-
-    <!-- ===== Fishing ===== -->
-    <div id="fishMenu" class="menuScreen">
-      <h2>釣り</h2>
-      <div id="fishingArea"></div>
-      <div class="muted">釣りの成果（確率）: ポーション(ポイント2x) 15% / ポーション(Exp2x) 15% / 木材 35% / 石 35%</div>
-      <button id="fishActionBtn" class="bigBtn" style="background:linear-gradient(90deg,#34d399,#10b981)">釣る</button>
-      <div id="fishingBarContainer"><div id="fishingBar"></div></div>
-      <button id="closeFish" class="bigBtn" style="background:#ef4444">閉じる</button>
-    </div>
-
-    <!-- ===== Inventory ===== -->
-    <div id="inventoryMenu" class="menuScreen">
-      <h2>インベントリ</h2>
-      <div class="muted">釣りや他で入手したアイテムを表示。ポーションはここで使用できます。</div>
-      <div id="inventoryList"></div>
-      <div style="margin-top:8px" class="muted">※ 石の剣は「装備」扱いではなく、作成すると恒久的に攻撃力に反映されます。</div>
-      <button id="closeInventory" class="bigBtn" style="background:#ef4444">閉じる</button>
-    </div>
-
-  </div>
-
-  <script>
-  /* ========== ゲームデータ ========== */
-  let gold = 0, exp = 0, level = 1, upgradePoints = 0;
-  const maxLevel = 200;
-
-  // HP/攻撃
-  let enemyMaxHp = 100, enemyHp = 100;
-  const baseDamage = 10; // 基本ダメージ（計算は multiplier を乗算する）
-  let upgrades = { autoAttack:0, attackPower:0, attackSpeed:0, goldBoost:0 };
-  let stoneSwords = 0; // 石の剣の個数（恒久ブースト）
-  let wood = 0, stone = 0; // 資材
-  let hasRod = false;
-
-  // 自動攻撃
-  let autoAttackEnabled = false;
-  const attackSpeedOptionsMs = [2500,2000,1000,500,200]; // level1..5
-  let lastAutoAttack = Date.now();
-
-  // ブースト（残秒）
-  let boostEffects = { exp2x:0, point2x:0 };
-
-  // インベントリ（ポーション類）
-  let inventory = []; // {type:'exp2x'|'point2x', name:''}
-
-  /* ========== UI Elements ========== */
-  const goldEl = document.getElementById('gold');
-  const enemyEl = document.getElementById('enemy');
-  const enemyHpEl = document.getElementById('enemyHp');
-  const enemyHpTextEl = document.getElementById('enemyHpText');
-  const expBarEl = document.getElementById('expBar');
-  const levelEl = document.getElementById('level');
-  const autoAttackToggle = document.getElementById('autoAttackToggle');
-
-  const upgradeBtn = document.getElementById('upgradeBtn');
-  const craftBtn = document.getElementById('craftBtn');
-  const fishBtn = document.getElementById('fishBtn');
-  const inventoryBtn = document.getElementById('inventoryBtn');
-
-  const upgradeMenu = document.getElementById('upgradeMenu');
-  const craftMenu = document.getElementById('craftMenu');
-  const fishMenu = document.getElementById('fishMenu');
-  const inventoryMenu = document.getElementById('inventoryMenu');
-
-  const upgradePointsEl = document.getElementById('upgradePoints');
-  const buyAutoAttack = document.getElementById('buyAutoAttack');
-  const buyAttackPower = document.getElementById('buyAttackPower');
-  const buyAttackSpeed = document.getElementById('buyAttackSpeed');
-  const buyGoldBoost = document.getElementById('buyGoldBoost');
-  const resetUpgradesBtn = document.getElementById('resetUpgrades');
-
-  const craftRodBtn = document.getElementById('craftRodBtn');
-  const craftStoneSwordBtn = document.getElementById('craftStoneSwordBtn');
-
-  const fishActionBtn = document.getElementById('fishActionBtn');
-  const fishingBarContainer = document.getElementById('fishingBarContainer');
-  const fishingBar = document.getElementById('fishingBar');
-
-  const inventoryList = document.getElementById('inventoryList');
-
-  const uiAutoAttack = document.getElementById('uiAutoAttack');
-  const uiAttackPower = document.getElementById('uiAttackPower');
-  const uiAttackSpeed = document.getElementById('uiAttackSpeed');
-  const uiGoldBoost = document.getElementById('uiGoldBoost');
-  const uiWood = document.getElementById('uiWood');
-  const uiStone = document.getElementById('uiStone');
-  const uiSwords = document.getElementById('uiSwords');
-
-  const boostDisplay = document.getElementById('boostDisplay');
-
-  /* ========== 助け関数 ========== */
-  function requiredExp(lv){ return lv * 10; }
-
-  function updateGold(){ goldEl.textContent = `Gold: ${Math.floor(gold)}`; saveData(); }
-  function updateEnemyHp(){
-    const pct = Math.max(0, (enemyHp/enemyMaxHp) * 100);
-    enemyHpEl.style.width = pct + '%';
-    if(pct>50) enemyHpEl.style.background = 'linear-gradient(90deg,#34d399,#10b981)';
-    else if(pct>20) enemyHpEl.style.background = 'linear-gradient(90deg,#facc15,#f97316)';
-    else enemyHpEl.style.background = 'linear-gradient(90deg,#fb7185,#ef4444)';
-    enemyHpTextEl.textContent = `${Math.max(0,Math.floor(enemyHp))} / ${Math.floor(enemyMaxHp)}`;
+// 攻撃
+function attackEnemy(){
+  if(enemyHp<=0) return;
+  enemyHp-=attackDamage;
+  updateEnemyHp();
+  if(enemyHp<=0){
+    let g=Math.floor(5*goldMultiplier*(boostEffects.point2x>0?2:1));
+    gold+=g;
+    exp+=5*(boostEffects.exp2x>0?2:1);
+    if(exp>=level*20){ exp=0; level++; upgradePoints++; }
+    enemyMaxHp+=5; enemyHp=enemyMaxHp;
+    updateGold(); updateExp(); updateUpgradePoints(); updateEnemyHp();
   }
-  function updateExpUI(){
-    const need = requiredExp(level);
-    const pct = Math.min(100, (exp/need)*100);
-    expBarEl.style.width = pct + '%';
-    levelEl.textContent = `Level: ${level}`;
-  }
-  function updateUpgradeUI(){
-    upgradePointsEl.textContent = upgradePoints;
-    uiAutoAttack.textContent = upgrades.autoAttack ? '購入済み' : '未購入';
-    uiAttackPower.textContent = upgrades.attackPower;
-    uiAttackSpeed.textContent = upgrades.attackSpeed;
-    uiGoldBoost.textContent = upgrades.goldBoost;
-  }
-  function updateMaterialsUI(){
-    uiWood.textContent = `木材 ${wood}`;
-    uiStone.textContent = `石 ${stone}`;
-    uiSwords.textContent = `石の剣 ${stoneSwords}`;
-  }
-  function floatGold(amount){
-    const g = document.createElement('div');
-    g.className = 'goldGain'; g.textContent = `+${Math.floor(amount)}`;
-    g.style.left = '52%'; g.style.top = '36px';
-    document.body.appendChild(g);
-    setTimeout(()=>g.remove(),900);
-  }
+}
+document.getElementById("attackBtn").onclick=attackEnemy;
 
-  function calculateAttackMultiplier(){
-    // attackPower upgrade: each level doubles (2^n)
-    const attackPowerMultiplier = Math.pow(2, upgrades.attackPower);
-    // stone swords: per-requested spec -> 1本 = 3x, 3本 = 9x => implement multiplier = 3 * swordCount
-    const swordMultiplier = stoneSwords > 0 ? (3 * stoneSwords) : 1;
-    return attackPowerMultiplier * swordMultiplier;
-  }
-  function getEffectiveDamage(){
-    return baseDamage * calculateAttackMultiplier();
-  }
+// 自動攻撃
+autoAttackBtn.onclick=()=>{
+  autoAttackEnabled=!autoAttackEnabled;
+  autoAttackBtn.textContent=autoAttackEnabled?"自動攻撃 ON":"自動攻撃 OFF";
+};
+setInterval(()=>{
+  if(autoAttackEnabled && !fishingActive) attackEnemy();
+},1000);
 
-  /* ========== 攻撃 / 敵 ========== */
-  function attackEnemy(){
-    const dmg = getEffectiveDamage();
-    enemyHp -= dmg;
-    if(enemyHp <= 0){
-      // reward: gold and exp scale with level
-      const baseGold = 5;
-      const baseExp = 2;
-      const rewardGold = baseGold * (upgrades.goldBoost+1) * (boostEffects.point2x>0 ? 2 : 1); // goldBoost multiplies gold gained (goldBoost level gives multiplier = level+1)
-      const rewardExp = baseExp * (boostEffects.exp2x>0 ? 2 : 1) * (1 + Math.floor(level/10)*0); // (can scale later)
-      gold += rewardGold;
-      exp += rewardExp;
-      floatGold(rewardGold);
-      updateGold();
-      updateExpUI();
-
-      // level up
-      while(exp >= requiredExp(level) && level < maxLevel){
-        exp -= requiredExp(level);
-        level++;
-        upgradePoints++;
+// アップグレード
+const upgradeList=document.getElementById("upgradeList");
+function renderUpgrades(){
+  upgradeList.innerHTML="";
+  [["attack","攻撃力 +1"],["gold","Gold倍率 +0.5"],["attackSpeed","攻撃速度 +0.5秒短縮"]].forEach(([key,label])=>{
+    let btn=document.createElement("button");
+    btn.textContent=label+" (コスト:1)";
+    btn.onclick=()=>{
+      if(upgradePoints>0){
+        upgrades[key]++; upgradePoints--;
+        if(key==="attack") attackDamage++;
+        if(key==="gold") goldMultiplier+=0.5;
       }
-      // enemy HP scales every 5 levels (user request); here +50 per 5 levels
-      enemyMaxHp = 100 + Math.floor(level / 5) * 50;
-      enemyHp = enemyMaxHp;
-    }
-    updateEnemyHp();
-    saveData();
-  }
-
-  enemyEl.addEventListener('click', ()=>{
-    // クリックでの攻撃は常に有効（ただし釣り中は無効）
-    if(currentlyFishing) return;
-    attackEnemy();
-  });
-
-  /* ========== メニュー切替 ========== */
-  const menus = { upgrade:'upgradeMenu', craft:'craftMenu', fish:'fishMenu', inventory:'inventoryMenu' };
-  function showMenu(id){
-    document.querySelectorAll('.menuScreen').forEach(m=>m.style.display='none');
-    document.getElementById(id).style.display = 'block';
-  }
-  function hideAllMenus(){ document.querySelectorAll('.menuScreen').forEach(m=>m.style.display='none'); }
-
-  upgradeBtn.addEventListener('click', ()=>showMenu('upgradeMenu'));
-  craftBtn.addEventListener('click', ()=>showMenu('craftMenu'));
-  fishBtn.addEventListener('click', ()=>showMenu('fishMenu'));
-  inventoryBtn.addEventListener('click', ()=>showMenu('inventoryMenu'));
-  document.getElementById('closeUpgrade').addEventListener('click', hideAllMenus);
-  document.getElementById('closeCraft').addEventListener('click', hideAllMenus);
-  document.getElementById('closeFish').addEventListener('click', hideAllMenus);
-  document.getElementById('closeInventory').addEventListener('click', hideAllMenus);
-
-  /* ========== アップグレード処理 ========== */
-  // costs helpers
-  const attackPowerCosts = [1,1,3,3,5,5,15,15,15,15]; // 10段階
-  const attackSpeedCosts = [10,10,25,50,75]; // 5段階
-  buyAutoAttack.addEventListener('click', ()=>{
-    if(upgradePoints >= 1 && upgrades.autoAttack < 1){
-      upgradePoints -= 1; upgrades.autoAttack = 1; updateUpgradeUI(); saveData();
-      alert('自動攻撃を購入しました！');
-    } else alert('ポイント不足または既に購入済み');
-  });
-  buyAttackPower.addEventListener('click', ()=>{
-    const lvl = upgrades.attackPower;
-    if(lvl >= 10){ alert('最大です'); return; }
-    const cost = attackPowerCosts[lvl];
-    if(upgradePoints >= cost){
-      upgradePoints -= cost; upgrades.attackPower++; updateUpgradeUI(); saveData();
-      alert(`攻撃力Lvが${upgrades.attackPower}になりました`);
-    } else alert('アップグレードポイントが足りません');
-  });
-  buyAttackSpeed.addEventListener('click', ()=>{
-    const lvl = upgrades.attackSpeed;
-    if(upgrades.autoAttack < 1){ alert('自動攻撃を先に購入してください'); return; }
-    if(lvl >= 5){ alert('最大です'); return; }
-    const cost = attackSpeedCosts[lvl];
-    if(upgradePoints >= cost){
-      upgradePoints -= cost; upgrades.attackSpeed++; updateUpgradeUI(); saveData();
-      alert(`攻撃速度Lvが${upgrades.attackSpeed}になりました`);
-    } else alert('アップグレードポイントが足りません');
-  });
-  buyGoldBoost.addEventListener('click', ()=>{
-    if(upgrades.goldBoost >= 5){ alert('最大です'); return; }
-    if(upgradePoints >= 1){
-      upgradePoints -= 1; upgrades.goldBoost++; updateUpgradeUI(); saveData();
-      alert(`ゴールドブーストLvが${upgrades.goldBoost}になりました`);
-    } else alert('アップグレードポイントが足りません');
-  });
-
-  // リセット機能: 支払50Goldでアップグレードを全部リセット、代わりに支払ったポイントを返却
-  resetUpgradesBtn.addEventListener('click', ()=>{
-    if(gold < 50){ alert('Goldが足りません（50必要）'); return; }
-    if(!confirm('本当にアップグレードをリセットしますか？（50 Goldが消費され、購入で使ったポイントが戻ってきます）')) return;
-
-    // 返却ポイント計算
-    let refund = 0;
-    refund += upgrades.autoAttack ? 1 : 0;
-    for(let i=0;i<upgrades.attackPower;i++) refund += attackPowerCosts[i];
-    for(let i=0;i<upgrades.attackSpeed;i++) refund += attackSpeedCosts[i];
-    refund += upgrades.goldBoost; // each goldBoost cost 1P
-
-    // リセット
-    upgrades = { autoAttack:0, attackPower:0, attackSpeed:0, goldBoost:0 };
-    upgradePoints += refund;
-    gold -= 50;
-
-    // stone swords remain (they are permanent items), but their effect remains; user didn't request removing swords on reset.
-    updateUpgradeUI(); updateGold(); saveData();
-    alert(`リセットしました。${refund}ポイントを返却しました（50Gold支払）`);
-  });
-
-  /* ========== クラフト ========== */
-  craftRodBtn.addEventListener('click', ()=>{
-    if(hasRod){ alert('既に釣竿を所有しています'); return; }
-    if(gold >= 5000){
-      gold -= 5000; hasRod = true; updateGold(); saveData(); alert('釣竿を作成しました！');
-    } else alert('Goldが足りません');
-  });
-
-  craftStoneSwordBtn.addEventListener('click', ()=>{
-    const costGold = 150, costWood = 5, costStone = 9;
-    if(gold >= costGold && wood >= costWood && stone >= costStone){
-      gold -= costGold; wood -= costWood; stone -= costStone;
-      stoneSwords += 1;
-      updateGold(); updateMaterialsUI(); saveData();
-      alert('石の剣を作成しました！攻撃力が恒久的に増加します');
-    } else alert('素材またはGoldが足りません');
-  });
-
-  /* ========== 釣りシステム ========== */
-  // probabilities: point2x 15%, exp2x 15%, wood 35%, stone 35%
-  let currentlyFishing = false;
-  fishActionBtn.addEventListener('click', ()=>{
-    if(!hasRod){ alert('釣竿が必要です（クラフトで作成）'); return; }
-    if(currentlyFishing) return;
-    currentlyFishing = true;
-    fishActionBtn.disabled = true;
-    let countdown = 3;
-    fishActionBtn.textContent = `開始まで: ${countdown}`;
-    const cd = setInterval(()=>{
-      countdown--;
-      if(countdown > 0) fishActionBtn.textContent = `開始まで: ${countdown}`;
-      else {
-        clearInterval(cd);
-        fishActionBtn.textContent = '連打開始!';
-        startFishing();
-      }
-    },1000);
-  });
-
-  function startFishing(){
-    fishingBarContainer.style.display = 'block';
-    fishingBar.style.width = '0%';
-    let clicks = 0;
-    const clickHandler = (e)=> {
-      // only count clicks that are not on UI buttons: approximate by checking target tag
-      if(e.target.tagName.toLowerCase() === 'button') return;
-      clicks++;
+      updateUpgradePoints(); renderUpgrades();
     };
-    document.addEventListener('click', clickHandler);
-
-    const fishingDuration = 3000;
-    const start = Date.now();
-    const fi = setInterval(()=>{
-      const elapsed = Date.now() - start;
-      const pct = Math.min(100, (elapsed / fishingDuration) * 100);
-      fishingBar.style.width = pct + '%';
-      if(elapsed >= fishingDuration){
-        clearInterval(fi);
-        document.removeEventListener('click', clickHandler);
-        fishingBarContainer.style.display = 'none';
-        currentlyFishing = false;
-        fishActionBtn.disabled = false;
-        fishActionBtn.textContent = '釣る';
-        determineFishingReward(clicks);
-      }
-    },30);
-  }
-
-  function determineFishingReward(clicks){
-    // クリック数は将来の判定に使えるが、現状は確率固定（要望との整合）
-    // generate random [0,1)
-    const r = Math.random();
-    let item = null;
-    if(r < 0.15) item = { type:'point2x', name:'アップグレードポイント2倍ブースト（30分）' };
-    else if(r < 0.30) item = { type:'exp2x', name:'Exp2倍ブースト（30分）' };
-    else if(r < 0.65){ wood += 1; item = { type:'wood', name:'木材 ×1' }; updateMaterialsUI(); }
-    else { stone += 1; item = { type:'stone', name:'石 ×1' }; updateMaterialsUI(); }
-
-    if(item.type === 'wood' || item.type === 'stone'){
-      // 資材は直接所持に追加（表示はdone）
-      alert(`釣りで ${item.name} を獲得！`);
-    } else {
-      // ポーションはインベントリに追加
-      inventory.push(item);
-      updateInventoryUI();
-      alert(`釣りで ${item.name} を獲得！インベントリで使用できます`);
-    }
-    saveData();
-  }
-
-  /* ========== インベントリ管理 ========== */
-  function updateInventoryUI(){
-    inventoryList.innerHTML = '';
-    if(inventory.length === 0){
-      const none = document.createElement('div'); none.textContent = '所持アイテムはありません'; none.className='muted'; inventoryList.appendChild(none); return;
-    }
-    inventory.forEach((it, idx)=>{
-      const row = document.createElement('div'); row.className='invItem';
-      const left = document.createElement('div'); left.textContent = it.name;
-      const right = document.createElement('div');
-      const btn = document.createElement('button'); btn.textContent = '使用';
-      btn.addEventListener('click', ()=>{
-        useInventoryItem(idx);
-      });
-      right.appendChild(btn);
-      row.appendChild(left); row.appendChild(right);
-      inventoryList.appendChild(row);
-    });
-  }
-
-  function useInventoryItem(index){
-    const it = inventory[index];
-    if(it.type === 'point2x'){ boostEffects.point2x = 1800; alert('アップグレードポイント2倍を発動しました（30分）'); }
-    else if(it.type === 'exp2x'){ boostEffects.exp2x = 1800; alert('Exp2倍を発動しました（30分）'); }
-    inventory.splice(index,1);
-    updateInventoryUI();
-    saveData();
-  }
-
-  /* ========== ブースト表示更新 ========== */
-  setInterval(()=>{
-    // 秒減算
-    for(const k in boostEffects) if(boostEffects[k] > 0) boostEffects[k]--;
-    // 表示
-    const parts = [];
-    if(boostEffects.point2x > 0) parts.push(`ポイント2x: ${Math.floor(boostEffects.point2x/60)}m${boostEffects.point2x%60}s`);
-    if(boostEffects.exp2x > 0) parts.push(`Exp2x: ${Math.floor(boostEffects.exp2x/60)}m${boostEffects.exp2x%60}s`);
-    boostDisplay.textContent = parts.join(' | ');
-  }, 1000);
-
-  /* ========== 保存 / 読み込み ========== */
-  function saveData(){
-    const data = {
-      gold, exp, level, upgradePoints, upgrades,
-      stoneSwords, wood, stone, hasRod, inventory, boostEffects
-    };
-    localStorage.setItem('rpg_full_v1', JSON.stringify(data));
-  }
-  function loadData(){
-    const raw = localStorage.getItem('rpg_full_v1');
-    if(!raw) return;
-    try{
-      const d = JSON.parse(raw);
-      gold = d.gold||0; exp = d.exp||0; level = d.level||1; upgradePoints = d.upgradePoints||0;
-      upgrades = d.upgrades||upgrades;
-      stoneSwords = d.stoneSwords||0; wood = d.wood||0; stone = d.stone||0;
-      hasRod = !!d.hasRod;
-      inventory = d.inventory || [];
-      boostEffects = d.boostEffects || { exp2x:0, point2x:0 };
-    }catch(e){ console.error('load error', e); }
-  }
-
-  /* ========== 自動攻撃のタイマー処理 ========== */
-  autoAttackToggle.addEventListener('click', ()=>{
-    autoAttackEnabled = !autoAttackEnabled;
-    autoAttackToggle.textContent = `自動攻撃: ${autoAttackEnabled ? 'ON' : 'OFF'}`;
-    // ensure we persist user preference
-    saveData();
+    upgradeList.appendChild(btn);
   });
-
-  // 汎用ループ：自動攻撃を秒間チェックして発動（精密には lastAutoAttack で間隔を制御）
-  setInterval(()=>{
-    if(upgrades.autoAttack < 1) return; // 自動攻撃自体を購入していないなら発動不可
-    if(!autoAttackEnabled) return;
-    // interval = attackSpeedOptionsMs[level-1] if level>0 else default 3000
-    const sp = upgrades.attackSpeed > 0 ? attackSpeedOptionsMs[upgrades.attackSpeed - 1] : 3000;
-    const now = Date.now();
-    if(now - lastAutoAttack >= sp){
-      lastAutoAttack = now;
-      attackEnemy();
-    }
-  }, 120);
-
-  /* ========== Helpers & Init ========== */
-  function updateAllUI(){
-    updateGold(); updateEnemyHp(); updateExpUI(); updateUpgradeUI(); updateMaterialsUI(); updateInventoryUI();
-    autoAttackToggle.textContent = `自動攻撃: ${autoAttackEnabled ? 'ON' : 'OFF'}`;
+}
+document.getElementById("openUpgrades").onclick=()=>{ renderUpgrades(); document.getElementById("upgradeMenu").style.display="block"; };
+document.getElementById("resetUpgrades").onclick=()=>{
+  if(gold>=50){
+    gold-=50;
+    upgradePoints=upgrades.attack+upgrades.gold+upgrades.attackSpeed;
+    upgrades={attack:0,gold:0,attackSpeed:0};
+    attackDamage=1; goldMultiplier=1;
+    updateGold(); updateUpgradePoints(); renderUpgrades();
   }
+};
 
-  // 初期ロード
-  loadData();
-  updateAllUI();
+// クラフト
+const craftList=document.getElementById("craftList");
+function renderCraft(){
+  craftList.innerHTML="";
+  // 釣竿
+  let rodBtn=document.createElement("button");
+  rodBtn.textContent="釣竿 (1000G, 木10, 石5)";
+  rodBtn.disabled=hasRod || gold<1000 || resources.wood<10 || resources.stone<5;
+  rodBtn.onclick=()=>{ if(!hasRod && gold>=1000 && resources.wood>=10 && resources.stone>=5){ gold-=1000; resources.wood-=10; resources.stone-=5; hasRod=true; updateGold(); renderCraft(); } };
+  craftList.appendChild(rodBtn);
+  // 石の剣
+  let swordBtn=document.createElement("button");
+  swordBtn.textContent="石の剣 (150G, 木5, 石9)";
+  swordBtn.disabled=gold<150 || resources.wood<5 || resources.stone<9;
+  swordBtn.onclick=()=>{ gold-=150; resources.wood-=5; resources.stone-=9; resources.stoneSword++; goldMultiplier*=3; updateGold(); renderCraft(); };
+  craftList.appendChild(swordBtn);
+}
+document.getElementById("openCraft").onclick=()=>{ renderCraft(); document.getElementById("craftMenu").style.display="block"; };
 
-  // start saving periodically
-  setInterval(saveData, 5000);
+// 釣り
+let fishingActive=false;
+let clicks=0;
+document.getElementById("startFishing").onclick=()=>{
+  if(!hasRod){ alert("釣竿をクラフトしてください！"); return; }
+  fishingActive=true; clicks=0;
+  document.getElementById("fishAction").disabled=false;
+  document.getElementById("fishingInfo").textContent="連打で釣れ！";
+  setTimeout(endFishing,3000);
+};
+document.getElementById("fishAction").onclick=()=>{ clicks++; };
 
-  /* ========== 初回ガイダンス（デバッグ用） ========= */
-  // If you want some starting resources for quick testing, uncomment:
-  // gold = 5000; wood = 2; stone = 2; updateAllUI(); saveData();
+function endFishing(){
+  fishingActive=false;
+  document.getElementById("fishAction").disabled=true;
+  determineFishingReward(clicks);
+}
+function determineFishingReward(clicks){
+  let baseRoll=Math.random();
+  // レア補正
+  if(clicks>=10) baseRoll*=0.5; // クリック多いとポーション系が当たりやすい
+  if(baseRoll<0.15){ inventory.push({type:"point2x",name:"アップグレードポイント2倍ブーストポーション"}); }
+  else if(baseRoll<0.30){ inventory.push({type:"exp2x",name:"Exp2倍ブーストポーション"}); }
+  else if(baseRoll<0.65){ resources.wood++; alert("木材を釣った！ 現在:"+resources.wood); return; }
+  else { resources.stone++; alert("石を釣った！ 現在:"+resources.stone); return; }
+  updateInventoryUI();
+  alert("釣り成功! "+inventory[inventory.length-1].name+" を獲得しました！");
+}
 
-  </script>
+// インベントリ
+const inventoryList=document.getElementById("inventoryList");
+function updateInventoryUI(){
+  inventoryList.innerHTML="";
+  inventory.forEach((item,idx)=>{
+    let btn=document.createElement("button");
+    btn.textContent=item.name;
+    btn.onclick=()=>useItem(idx);
+    inventoryList.appendChild(btn);
+  });
+}
+function useItem(idx){
+  let item=inventory[idx];
+  if(item.type==="point2x") boostEffects.point2x=1800;
+  if(item.type==="exp2x") boostEffects.exp2x=1800;
+  inventory.splice(idx,1); updateInventoryUI();
+  alert(item.name+" を使用しました！");
+}
+
+// ブースト残り時間
+setInterval(()=>{
+  for(let k in boostEffects) if(boostEffects[k]>0) boostEffects[k]--;
+  let t="";
+  if(boostEffects.point2x>0) t+="ポイント2倍:"+Math.floor(boostEffects.point2x/60)+"分 ";
+  if(boostEffects.exp2x>0) t+="Exp2倍:"+Math.floor(boostEffects.exp2x/60)+"分";
+  boostDisplay.textContent=t;
+},1000);
+
+// リワード
+let usedCodes=new Set();
+document.getElementById("claimReward").onclick=()=>{
+  let code=document.getElementById("rewardCode").value.trim();
+  if(usedCodes.has(code)){ document.getElementById("rewardMessage").textContent="このコードは使用済みです"; return; }
+  if(code==="RPG"){ gold+=250; updateGold(); document.getElementById("rewardMessage").textContent="250ゴールド獲得！"; usedCodes.add(code); }
+  else if(code==="SecretCode"){ resources.stoneSword+=2; goldMultiplier*=9; upgradePoints+=5; exp+=500; updateGold(); updateExp(); updateUpgradePoints(); document.getElementById("rewardMessage").textContent="石の剣×2, Exp500, ポイント5を獲得！"; usedCodes.add(code); }
+  else document.getElementById("rewardMessage").textContent="無効なコードです";
+};
+
+// メニュー制御
+function closeMenu(id){ document.getElementById(id).style.display="none"; }
+document.getElementById("openInventory").onclick=()=>{ updateInventoryUI(); document.getElementById("inventoryMenu").style.display="block"; };
+document.getElementById("openFishing").onclick=()=>{ document.getElementById("fishingMenu").style.display="block"; };
+document.getElementById("openReward").onclick=()=>{ document.getElementById("rewardMenu").style.display="block"; };
+
+updateGold(); updateExp(); updateUpgradePoints(); updateEnemyHp();
+</script>
 </body>
 </html>
