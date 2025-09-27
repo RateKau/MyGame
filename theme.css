@@ -1,0 +1,38 @@
+:root {
+  /* === 背景 === */
+  --bg1: #0f1724;   /* 背景グラデ上部 */
+  --bg2: #172031;   /* 背景グラデ下部 */
+
+  /* === 基本UI === */
+  --card: #2b3947;   /* カード/ボタン背景 */
+  --accent: #7dd3fc; /* 見出し強調・釣り円の一部 */
+  --muted: #94a3b8;  /* サブテキスト */
+  --btn: #60a5fa;    /* ボタン基準色 */
+  --win: #93c5fd;    /* Gold数値など */
+  --text-main: #eef2ff; /* 通常文字色 */
+  --boost: #a7f3d0;  /* Boost倍率テキスト */
+
+  /* === HPバー === */
+  --hp-green1: #34d399;
+  --hp-green2: #10b981;
+  --hp-yellow: #facc15;
+  --hp-orange: #f97316;
+  --hp-pink: #fb7185;
+  --hp-red: #ef4444;
+
+  /* === Expバー === */
+  --exp-bg: #3f4b57;
+  --exp-bar: #ffffff;
+
+  /* === 釣りゲージ === */
+  --fish-bg: #3b4250;
+  --fish-bar1: #a7f3d0;
+  --fish-bar2: #60a5fa;
+
+  /* === 特殊ボタン === */
+  --btn-reset: #f97316;
+  --btn-close: #ef4444;
+
+  /* === 獲得テキスト === */
+  --gold-float: #fde68a;
+}
